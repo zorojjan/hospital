@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Мои записи - {{ patient.first_name }} {{ patient.last_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">
+        <i class="fas fa-history"></i> Мои записи к врачам
+    </h1>
+
+    {% if bookings %}
+        <div class="row">
+            {% for booking in bookings %}
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100 {% if booking.status == 'confirmed' %}border-success{% elif booking.status == 'pending' %}border-warning{% elif booking.status == 'completed' %}border-info{% else %}border-danger{% endif %}">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                Dr. {{ booking.doctor.first_name }} {{ booking.doctor.last_name }}
+                                <small class="text-muted">- {{ booking.doctor.specialization }}</small>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong><i class="fas fa-calendar"></i> Дата:</strong> 
+                                {{ booking.appointment_date|date:"d.m.Y H:i" }}</p>
+                            <p><strong><i class="fas fa-stethoscope"></i> Причина визита:</strong> 
+                                {{ booking.reason }}</p>
+                            <p><strong><i class="fas fa-info-circle"></i> Статус:</strong>
+                                {% if booking.status == 'pending' %}
+                                    <span class="badge bg-warning">⏳ {{ booking.get_status_display }}</span>
+                                {% elif booking.status == 'confirmed' %}
+                                    <span class="badge bg-success">✓ {{ booking.get_status_display }}</span>
+                                {% elif booking.status == 'completed' %}
+                                    <span class="badge bg-info">✓ {{ booking.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-danger">✗ {{ booking.get_status_display }}</span>
+                                {% endif %}
+                            </p>
+                            {% if booking.notes %}
+                                <p><strong><i class="fas fa-clipboard"></i> Примечания врача:</strong>
+                                    {{ booking.notes }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-light">
+                            {% if booking.status == 'completed' and not booking.doctor.reviews.filter(patient_email=patient.email).exists %}
+                                <a href="{% url 'add_review' booking.doctor.pk %}" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-star"></i> Оценить врача
+                                </a>
+                            {% elif booking.doctor.reviews.filter(patient_email=patient.email, is_verified=True).exists %}
+                                <span class="badge bg-success"><i class="fas fa-check"></i> Вы оценили этого врача</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info text-center py-5">
+            <i class="fas fa-info-circle fa-2x mb-3"></i>
+            <p>У вас пока нет записей</p>
+            <a href="{% url 'doctor_list' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus"></i> Записаться к врачу
+            </a>
+        </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{% url 'patient_dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Вернуться в кабинет
+        </a>
+    </div>
+</div>
+{% endblock %}

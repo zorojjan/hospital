@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Карта - Медми Клиника{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<style>
+    #map {
+        height: 600px;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    }
+    .clinic-info {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    .clinic-info h3 {
+        margin-top: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h2><i class="fas fa-map"></i> Наши адреса</h2>
+
+{% if clinic %}
+<div class="clinic-info">
+    <h3>{{ clinic.name }}</h3>
+    <p><strong><i class="fas fa-map-marker-alt"></i> Адрес:</strong> {{ clinic.address }}</p>
+    <p><strong><i class="fas fa-phone"></i> Телефон:</strong> {{ clinic.phone }}</p>
+    <p><strong><i class="fas fa-clock"></i> Время работы:</strong> {{ clinic.working_hours }}</p>
+</div>
+
+<div id="map"></div>
+
+<div class="row mt-5">
+    <div class="col-md-12">
+        <h3>Врачи по местоположению</h3>
+    </div>
+</div>
+
+<div class="row mt-3">
+    {% for doctor in doctors %}
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Dr. {{ doctor.first_name }} {{ doctor.last_name }}</h5>
+                <p class="card-text">
+                    <small><i class="fas fa-stethoscope text-primary"></i> {{ doctor.specialization }}</small><br>
+                    <small><i class="fas fa-map-marker-alt text-danger"></i> {{ doctor.address }}</small><br>
+                    <small><i class="fas fa-phone text-success"></i> {{ doctor.phone }}</small>
+                </p>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-md-12">
+        <p class="text-muted">Пока нет врачей с указанным местоположением.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+    // Инициализация карты
+    {% if clinic %}
+    var map = L.map('map').setView([{{ clinic.latitude }}, {{ clinic.longitude }}], 14);
+    
+    // Добавляем слой карты OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    
+    // Добавляем маркер клиники
+    L.marker([{{ clinic.latitude }}, {{ clinic.longitude }}], {
+        icon: L.icon({
+            iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+            iconSize: [25, 41],
+            shadowSize: [41, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34]
+        })
+    }).bindPopup('<b>{{ clinic.name }}</b><br>{{ clinic.address }}').addTo(map);
+    
+    // Добавляем маркеры врачей
+    {% for doctor in doctors %}
+    {% if doctor.latitude and doctor.longitude %}
+    L.circleMarker([{{ doctor.latitude }}, {{ doctor.longitude }}], {
+        radius: 8,
+        fillColor: '#667eea',
+        color: '#764ba2',
+        weight: 2,
+        opacity: 0.8,
+        fillOpacity: 0.7
+    }).bindPopup('<b>Dr. {{ doctor.first_name }} {{ doctor.last_name }}</b><br>{{ doctor.specialization }}<br>{{ doctor.address }}').addTo(map);
+    {% endif %}
+    {% endfor %}
+    {% else %}
+    // Если клиника не найдена, показываем дефолтное расположение
+    var map = L.map('map').setView([55.7558, 37.6173], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    {% endif %}
+</script>
+{% else %}
+<div class="alert alert-info" role="alert">
+    <i class="fas fa-info-circle"></i> Информация о клинике не добавлена. Пожалуйста, добавьте её в админке.
+</div>
+{% endif %}
+{% endblock %}

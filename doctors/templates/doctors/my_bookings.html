@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Мои записи - Медми{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2><i class="fas fa-calendar-check"></i> Мои записи на прием</h2>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8 offset-md-2">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-search"></i> Поиск ваших записей</h5>
+                <form method="get" class="form">
+                    <div class="input-group">
+                        <input type="text" name="phone" class="form-control" placeholder="Введите ваш телефон" value="{{ phone }}">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search"></i> Найти
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if phone %}
+            {% if bookings %}
+                {% for booking in bookings %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5 class="card-title">
+                                    <i class="fas fa-user-md"></i> Dr. {{ booking.doctor.first_name }} {{ booking.doctor.last_name }}
+                                </h5>
+                                <p class="card-text">
+                                    <small><i class="fas fa-stethoscope text-primary"></i> {{ booking.doctor.specialization }}</small><br>
+                                    <small><i class="fas fa-calendar text-info"></i> 
+                                        <strong>{{ booking.appointment_date|date:"d.m.Y в H:i" }}</strong>
+                                    </small><br>
+                                    <small><i class="fas fa-notes-medical text-success"></i> Причина: {{ booking.reason }}</small>
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                {% if booking.status == 'pending' %}
+                                    <span class="badge bg-warning text-dark" style="font-size: 1rem; padding: 0.5rem;">
+                                        ⏳ В ожидании
+                                    </span>
+                                {% elif booking.status == 'confirmed' %}
+                                    <span class="badge bg-success" style="font-size: 1rem; padding: 0.5rem;">
+                                        ✓ Подтверждено
+                                    </span>
+                                {% elif booking.status == 'completed' %}
+                                    <span class="badge bg-info" style="font-size: 1rem; padding: 0.5rem;">
+                                        ✓✓ Завершено
+                                    </span>
+                                {% elif booking.status == 'cancelled' %}
+                                    <span class="badge bg-danger" style="font-size: 1rem; padding: 0.5rem;">
+                                        ✕ Отменено
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% if booking.notes %}
+                        <hr>
+                        <div class="alert alert-info mb-0">
+                            <strong><i class="fas fa-comment"></i> Примечание:</strong> {{ booking.notes }}
+                        </div>
+                        {% endif %}
+
+                        <hr>
+                        <small class="text-muted">
+                            <i class="fas fa-clock"></i> Запись создана: {{ booking.created_at|date:"d.m.Y в H:i" }}
+                        </small>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle"></i> По вашему телефону <strong>{{ phone }}</strong> не найдено записей.
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="alert alert-secondary" role="alert">
+                <i class="fas fa-hand-point-up"></i> Введите ваш телефон выше чтобы найти ваши записи на прием.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

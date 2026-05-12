@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Система управления больницей Медми{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: linear-gradient(90deg, #2c3e50 0%, #3498db 100%);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #fff !important;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-link {
+            color: #ecf0f1 !important;
+            margin-left: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            color: #fff !important;
+            transform: translateY(-2px);
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            margin-top: 30px;
+            margin-bottom: 30px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        footer {
+            background: linear-gradient(90deg, #2c3e50 0%, #3498db 100%) !important;
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
+            margin-top: auto !important;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .table {
+            margin-top: 20px;
+        }
+
+        .table-dark {
+            background: linear-gradient(90deg, #2c3e50 0%, #3498db 100%);
+        }
+
+        .badge {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+
+        .jumbotron {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: white;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'home' %}"><i class="fas fa-hospital"></i> Медми</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}"><i class="fas fa-home"></i> Главная</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'doctor_list' %}"><i class="fas fa-user-md"></i> Врачи</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'map' %}"><i class="fas fa-map"></i> Карта</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'my_bookings' %}"><i class="fas fa-bookmark"></i> Мои записи</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        {% if user.doctor_profile %}
+                            <a class="nav-link" href="{% url 'doctor_dashboard' %}">
+                                <i class="fas fa-user-md text-danger"></i> Кабинет врача
+                            </a>
+                        {% elif user.patient_profile %}
+                            <a class="nav-link" href="{% url 'patient_dashboard' %}">
+                                <i class="fas fa-user-circle text-info"></i> Кабинет пациента
+                            </a>
+                        {% endif %}
+                    </li>
+                    <li class="nav-item">
+                        <span class="nav-link">
+                            {% if user.doctor_profile %}
+                                <i class="fas fa-user-md text-danger"></i> {{ user.first_name }}
+                            {% elif user.patient_profile %}
+                                <i class="fas fa-user-circle text-info"></i> {{ user.first_name }}
+                            {% endif %}
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'general_logout' %}">
+                            <i class="fas fa-sign-out-alt"></i> Выход
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'patient_register' %}">
+                            <i class="fas fa-sign-in-alt"></i> Войти / Регистрация
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer class="text-light py-4">
+        <div class="container-fluid text-center">
+            <p>&copy; 2026 Медми - Клиника здоровья. Все права защищены.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (!input || !icon) return;
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

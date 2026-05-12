@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Вход для врачей{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4 offset-md-4">
+        <div class="card mt-5">
+            <div class="card-header bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h2 class="text-white mb-0">
+                    <i class="fas fa-user-md"></i> Вход для врачей
+                </h2>
+            </div>
+            <div class="card-body">
+                {% if error %}
+                    <div class="alert alert-danger alert-dismissible fade show">
+                        <i class="fas fa-exclamation-circle"></i> {{ error }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endif %}
+
+                <form method="post" class="form">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">
+                            <i class="fas fa-user"></i> Имя пользователя
+                        </label>
+                        <input type="text" class="form-control" id="id_username" name="username" 
+                               placeholder="Введите иму пользователя" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="id_password" class="form-label">
+                            <i class="fas fa-lock"></i> Пароль
+                        </label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="id_password" name="password"
+                                   placeholder="Введите пароль" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('id_password','doctorPasswordIcon')">
+                                <i id="doctorPasswordIcon" class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 btn-lg">
+                        <i class="fas fa-sign-in-alt"></i> Войти
+                    </button>
+                </form>
+
+                <hr>
+                <div class="alert alert-info small">
+                    <i class="fas fa-info-circle"></i>
+                    Обратитесь админу для получения учетной записи
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

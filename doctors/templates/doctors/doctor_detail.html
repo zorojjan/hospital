@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Dr. {{ doctor.first_name }} {{ doctor.last_name }} - Медми{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            {% if doctor.photo_url %}
+                <img src="{{ doctor.photo_url }}" alt="{{ doctor.first_name }}" class="card-img-top" style="height: 300px; object-fit: cover;">
+            {% else %}
+                <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 300px;">
+                    <i class="fas fa-user-md fa-5x"></i>
+                </div>
+            {% endif %}
+            <div class="card-body">
+                <h3 class="card-title">Dr. {{ doctor.first_name }} {{ doctor.last_name }}</h3>
+                <p class="card-text">
+                    <strong>{{ doctor.specialization }}</strong>
+                </p>
+                <div class="mb-3">
+                    <div class="rating">
+                        {% for i in "12345" %}
+                            {% if i|add:"0" <= average_rating %}
+                                <i class="fas fa-star" style="color: #ffc107;"></i>
+                            {% elif i|add:"0" <= average_rating|add:"1" %}
+                                <i class="fas fa-star-half-alt" style="color: #ffc107;"></i>
+                            {% else %}
+                                <i class="far fa-star" style="color: #ffc107;"></i>
+                            {% endif %}
+                        {% endfor %}
+                        <span class="ms-2"><strong>{{ average_rating }}</strong>/5 ({{ doctor.get_reviews_count }} отзывов)</span>
+                    </div>
+                </div>
+                <hr>
+                <p>
+                    <small><i class="fas fa-phone text-info"></i> {{ doctor.phone }}</small><br>
+                    {% if doctor.address %}
+                    <small><i class="fas fa-map-marker-alt text-danger"></i> {{ doctor.address }}</small><br>
+                    {% endif %}
+                    <small><i class="fas fa-id-card text-info"></i> Лицензия: {{ doctor.license_number }}</small>
+                </p>
+                <hr>
+                {% if request.user.is_authenticated and is_patient %}
+                    <a href="{% url 'book_appointment' doctor.pk %}" class="btn btn-primary w-100 mb-2">
+                        <i class="fas fa-calendar-check"></i> Записаться на прием
+                    </a>
+                {% else %}
+                    <a href="{% url 'home' %}" class="btn btn-secondary w-100 mb-2">
+                        <i class="fas fa-sign-in-alt"></i> Войдите, чтобы записаться
+                    </a>
+                {% endif %}
+                <a href="{% url 'add_review' doctor.pk %}" class="btn btn-outline-primary w-100">
+                    <i class="fas fa-star"></i> Оставить отзыв
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <h2><i class="fas fa-comments"></i> Отзывы пациентов</h2>
+        
+        {% if reviews %}
+            {% for review in reviews %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h5 class="card-title mb-1">{{ review.patient_name }}</h5>
+                            <div class="rating mb-2">
+                                {% for i in "12345" %}
+                                    {% if i|add:"0" <= review.rating %}
+                                        <i class="fas fa-star" style="color: #ffc107;"></i>
+                                    {% else %}
+                                        <i class="far fa-star" style="color: #ffc107;"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="badge bg-warning text-dark ms-2">{{ review.get_rating_display }}</span>
+                            </div>
+                        </div>
+                        <small class="text-muted">{{ review.created_at|date:"d.m.Y" }}</small>
+                    </div>
+                    <p class="card-text">{{ review.comment }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                <i class="fas fa-info-circle"></i> Пока нет проверенных отзывов.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

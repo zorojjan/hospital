@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Назначить пациента - Dr. {{ doctor.first_name }} {{ doctor.last_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <h2><i class="fas fa-calendar-plus"></i> Назначить пациента на прием</h2>
+        <div class="card">
+            <div class="card-body">
+                <div class="alert alert-info mb-3">
+                    <i class="fas fa-check-circle"></i> Вы врач: <strong>Dr. {{ doctor.first_name }} {{ doctor.last_name }}</strong><br>
+                    <small>Специализация: <strong>{{ doctor.specialization }}</strong></small><br>
+                    <small>Время работы: <strong>{{ doctor.start_time|time:"H:i" }} - {{ doctor.end_time|time:"H:i" }}</strong></small>
+                </div>
+
+                {% if error %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i> {{ error }}
+                    </div>
+                {% endif %}
+
+                <form method="post" class="form" id="bookingForm">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_patient_name" class="form-label">
+                            <i class="fas fa-user"></i> Имя пациента <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" id="id_patient_name" name="patient_name" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_patient_phone" class="form-label">
+                            <i class="fas fa-phone"></i> Телефон пациента <span class="text-danger">*</span>
+                        </label>
+                        <input type="tel" class="form-control" id="id_patient_phone" name="patient_phone" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_appointment_date" class="form-label">
+                            <i class="fas fa-calendar"></i> Выберите дату приёма <span class="text-danger">*</span>
+                        </label>
+                        <input type="date" class="form-control" id="id_appointment_date" name="appointment_date" required>
+                    </div>
+
+                    <div class="mb-3" id="timeSlotContainer" style="display: none;">
+                        <label for="id_appointment_time" class="form-label">
+                            <i class="fas fa-clock"></i> Выберите время приёма <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select" id="id_appointment_time" name="appointment_time" required>
+                            <option value="">Выберите время...</option>
+                        </select>
+                        <small class="form-text text-muted">Доступные слоты по {{ doctor.appointment_duration }} минут</small>
+                    </div>
+
+                    <div id="loadingSlots" class="alert alert-info" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i> Загрузка доступных слотов...
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_reason" class="form-label">
+                            <i class="fas fa-stethoscope"></i> Причина визита/диагноз <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" id="id_reason" name="reason" rows="3" required></textarea>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-check"></i> Назначить пациента
+                        </button>
+                        <a href="{% url 'doctor_dashboard' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Отмена
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Минимальная дата - завтра
+const today = new Date();
+const tomorrow = new Date(today);
+tomorrow.setDate(tomorrow.getDate() + 1);
+document.getElementById('id_appointment_date').min = tomorrow.toISOString().split('T')[0];
+
+// Максимальная дата - через 30 дней
+const maxDate = new Date(today);
+maxDate.setDate(maxDate.getDate() + 30);
+document.getElementById('id_appointment_date').max = maxDate.toISOString().split('T')[0];
+
+document.getElementById('id_appointment_date').addEventListener('change', function() {
+    const date = this.value;
+    if (!date) return;
+    
+    const timeSelect = document.getElementById('id_appointment_time');
+    const container = document.getElementById('timeSlotContainer');
+    const loading = document.getElementById('loadingSlots');
+    
+    // Показываем загрузку
+    loading.style.display = 'block';
+    container.style.display = 'none';
+    timeSelect.innerHTML = '';
+    
+    // Получаем доступные слоты
+    fetch(`{% url 'get_available_slots' doctor.pk %}?date=${date}`)
+        .then(response => response.json())
+        .then(data => {
+            loading.style.display = 'none';
+            
+            if (data.slots.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'Нет свободных слотов';
+                option.disabled = true;
+                timeSelect.appendChild(option);
+            } else {
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Выберите время...';
+                timeSelect.appendChild(defaultOption);
+                
+                data.slots.forEach(slot => {
+                    const option = document.createElement('option');
+                    option.value = slot.time;
+                    option.textContent = slot.time;
+                    timeSelect.appendChild(option);
+                });
+            }
+            
+            container.style.display = 'block';
+        })
+        .catch(error => {
+            loading.style.display = 'none';
+            console.error('Error:', error);
+            container.style.display = 'block';
+        });
+});
+</script>
+{% endblock %}
